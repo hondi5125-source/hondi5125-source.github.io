@@ -111,6 +111,44 @@
     </details>
   </details>
 
+  <details class="card fold">
+    <summary>직접 넣기</summary>
+
+    <div class="inGrp">일정 추가</div>
+    <div class="inRow">
+      <input type="date" id="inDate">
+      <input type="time" id="inTime">
+    </div>
+    <div class="inRow2">
+      <input type="text" id="inText" placeholder="내용 (예: 친구 모임)">
+      <button class="inBtn" id="inAdd" type="button">추가</button>
+    </div>
+
+    <div class="inGrp">근무 지정</div>
+    <div class="inRow2">
+      <input type="date" id="wkDate">
+    </div>
+    <div class="wkBtns">
+      <button class="inSm" data-w="day" type="button">정상</button>
+      <button class="inSm" data-w="dawn" type="button">새벽</button>
+      <button class="inSm" data-w="pm" type="button">오후</button>
+      <button class="inSm" data-w="off" type="button">휴무</button>
+    </div>
+
+    <div class="inGrp">할 일 추가</div>
+    <div class="inRow2">
+      <input type="text" id="tdText" placeholder="할 일">
+      <button class="inBtn" id="tdAdd" type="button">추가</button>
+    </div>
+
+    <div class="inGrp">지우기</div>
+    <div class="inRow2">
+      <button class="inBtn wide" id="delMeet" type="button">일정 지우기</button>
+      <button class="inBtn wide" id="delTodo" type="button">할 일 지우기</button>
+    </div>
+    <div class="status" id="inMsg"></div>
+  </details>
+
   <details class="card fold" open>
     <summary>오늘 기록</summary>
     <div class="drinks" id="drinks">
@@ -222,6 +260,24 @@
   td.edtime.ed{color:var(--clay)}
   td.edit.ed{color:var(--jade); font-weight:700}
   td.edit.ed::after{content:" ✎"; font-size:11px; opacity:.7}
+  .inGrp{font-size:12px; font-weight:800; color:var(--jade); margin:14px 0 6px;
+    letter-spacing:.05em}
+  .inGrp:first-of-type{margin-top:2px}
+  .inRow{display:grid; grid-template-columns:1fr 1fr; gap:7px}
+  .inRow2{display:flex; gap:7px; margin-top:7px}
+  .inRow input, .inRow2 input{flex:1; min-width:0; font-family:inherit; font-size:15px;
+    padding:10px; border:1.5px solid var(--line); border-radius:9px; color:var(--ink)}
+  .inRow input:focus, .inRow2 input:focus{outline:none; border-color:var(--jade)}
+  .inBtn{flex:none; padding:10px 15px; font-size:14px; font-weight:700;
+    background:var(--jade); color:#fff; border:none; border-radius:9px;
+    cursor:pointer; font-family:inherit}
+  .inBtn.wide{flex:1; background:#fff; color:var(--ink2);
+    border:1.5px solid var(--line)}
+  .wkBtns{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:7px}
+  .inSm{padding:11px 4px; font-size:13px; font-weight:700; border:1.5px solid var(--line);
+    background:#fff; color:var(--ink); border-radius:9px; cursor:pointer;
+    font-family:inherit}
+  .inSm:active{background:var(--jade-l)}
   .drinks{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
   .d{display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:2px; padding:12px 4px; border:1.5px solid var(--line); background:#fff;
@@ -378,14 +434,9 @@
   .td{cursor:pointer}
   .td.done .tbox{background:var(--jade); border-color:var(--jade)}
   .td.done .tdx{text-decoration:line-through; color:#9AA39D}
-  .att{flex:none; min-width:40px; padding:4px 8px; font-size:11.5px; font-weight:700;
-    border:1.5px solid var(--line); background:#fff; color:var(--ink2);
-    border-radius:14px; cursor:pointer; font-family:inherit}
-  .att.go{border-color:var(--jade); background:var(--jade); color:#fff}
-  .att.no{border-color:#B8791F; background:#FBF3E2; color:#8A6316}
-  .att.fin{border-color:#B0B6B1; background:#F0F0EE; color:#8C948F}
   .mt.fin{opacity:.5}
-  .mt.past{opacity:.4}
+  .mt.past{opacity:.38}
+  .mt.past .mtX{text-decoration:line-through}
   .mt.fin .mtX{text-decoration:line-through}
   .tdx{flex:1; min-width:0}
   .tdd{font-size:12px; font-weight:700; color:var(--jade); flex:none; min-width:52px}
@@ -458,7 +509,7 @@ var LUNAR = [
 // 종류: 'family' 가족·부모님 · 'friend' 친구 · 'work' 회사·비즈니스 · 'etc' 그 외
 // 술: true 술자리 · false 술 없음
 // 참석: true 감 · false 근무라 못 감
-var MEETS = [
+var BASE_MEETS = [
   ['2026-08-21','14:00','머리 염색','etc',false],
   ['2026-08-22','13:30','★ 소영이 공항 픽업','family',false],
   ['2026-08-24','14:00','문화체육관광분과 제3차 회의 (제2청사 1층 1회의실)','work',false],
@@ -472,7 +523,7 @@ var MEETS = [
   ['2027-01-21','','★ 소영이 약사 국가시험','family',false]
 ];
 // 할 일
-var TODO = [
+var BASE_TODO = [
   ['책·방송', [
     'KBS에 방송 전 미리 책 보내기 (강인희 기자)',
     '9/7 촬영 — 근무 조정 또는 휴가 신청',
@@ -506,6 +557,8 @@ var TODO = [
     '어머니 생신(11/16) 준비'
   ]]
 ];
+TODO = BASE_TODO.slice();
+MEETS = BASE_MEETS.slice();
 // 아이들 시험 준비 일정 (따로 표시)
 var EXAMS = [
   ['2026-08-24','수능 원서 접수 시작'],
@@ -540,6 +593,7 @@ var STORE = {
 var DOW = ['일','월','화','수','목','금','토'];
 var START = '2026-08-21';
 var drawTodo = function(){}, drawMeets = function(){}, redrawDay = function(){};
+var MEETS = [], TODO = [], mt = [];
 
 // ── 엄마(경찰) 근무 ──
 // 9일 주기: 휴무-주간-야간-심야-비번 / 휴무-주간-야간-비번
@@ -872,7 +926,7 @@ redrawDay = function(){
 redrawDay();
 
 // 약속
-var mt = MEETS.map(function(e){
+mt = MEETS.map(function(e){
   var pt = e[0].split('-');
   var dt = new Date(+pt[0], +pt[1]-1, +pt[2]);
   return {d:dt, t:e[1], x:e[2], drink:!!e[4],
@@ -881,27 +935,16 @@ var mt = MEETS.map(function(e){
   return a.d - b.d || (a.t < b.t ? -1 : 1);
 });
 function meetHTML(u){
-  var key = u.k2;
-  var st = rec.att && rec.att[key];
-  var skip = st === 'no';
-  var done = st === 'done';
-  return '<div class="mt'+(skip?' skip':'')+(done?' fin':'')+'">'
+  var past = u.n < 0;
+  return '<div class="mt'+(past?' past':'')+'">'
     + '<span class="mtDate">'+(u.d.getMonth()+1)+'/'+u.d.getDate()+'('+DOW[u.d.getDay()]+')</span>'
     + '<span class="mtT">'+(u.t||'')+'</span>'
     + '<span class="mtX">'+u.x+(u.drink?' 🍶':'')+'</span>'
-    + '<button class="att'+(done?' go':(skip?' no':''))+'" data-k="'+key+'" type="button">'
-    + (done?'함':(skip?'안 함':'?'))+'</button>'
-    + '<span class="mtWhen">'+(u.n<0?'지남':(u.n===0?'오늘':(u.n===1?'내일':u.n+'일')))+'</span></div>';
+    + '<span class="mtWhen">'+(past?'지남':(u.n===0?'오늘':(u.n===1?'내일':u.n+'일')))+'</span></div>';
 }
 drawMeets = function(){
-  var open3 = mt.filter(function(u){
-    var st = rec.att && rec.att[u.k2];
-    return u.n >= 0 && st !== 'done' && st !== 'no';
-  });
-  var closed3 = mt.filter(function(u){
-    var st = rec.att && rec.att[u.k2];
-    return !(u.n >= 0 && st !== 'done' && st !== 'no');
-  }).reverse();
+  var open3 = mt.filter(function(u){ return u.n >= 0; });
+  var closed3 = mt.filter(function(u){ return u.n < 0; }).reverse();
   var sorted = open3.concat(closed3);
   document.getElementById('meets').innerHTML = sorted.length
     ? sorted.slice(0,5).map(meetHTML).join('')
@@ -914,41 +957,6 @@ drawMeets = function(){
     document.getElementById('meetsLater').innerHTML = later.map(meetHTML).join('');
   } else w.hidden = true;
 };
-
-var _old = function(){
-  document.getElementById('meets').innerHTML = mt.length ? mt.map(function(u){
-    var key = u.k2;
-    var st = rec.att && rec.att[key];
-    var skip = st === 'no';
-    return '<div class="mt'+(skip?' skip':'')+'">'
-      + '<span class="mtDate">'+(u.d.getMonth()+1)+'/'+u.d.getDate()+'('+DOW[u.d.getDay()]+')</span>'
-      + '<span class="mtT">'+(u.t||'')+'</span>'
-      + '<span class="mtX">'+u.x+(u.drink?' 🍶':'')+'</span>'
-      + '<button class="att'+(st==='go'?' go':(skip?' no':''))+'" data-k="'+key+'" type="button">'
-      + (st==='go'?'참석':(skip?'불참':'?'))+'</button>'
-      + '<span class="mtWhen">'+(u.n===0?'오늘':(u.n===1?'내일':u.n+'일'))+'</span></div>';
-  }).join('') : '';
-};
-document.addEventListener('click', function(e){
-  var b = e.target.closest('.att');
-  if(!b) return;
-  var k = b.dataset.k;
-  var name = k.split('|')[1] || '';
-  var cur2 = (rec.att && rec.att[k]) || '';
-  var now3 = cur2 === 'done' ? '함' : (cur2 === 'no' ? '안 함' : '아직');
-  if(!rec.att) rec.att = {};
-  if(cur2 === 'done'){
-    if(confirm(name + '\n\n지금: 함\n\n확인 = 안 함으로\n취소 = 그대로')) rec.att[k] = 'no';
-    else return;
-  } else if(cur2 === 'no'){
-    if(confirm(name + '\n\n지금: 안 함\n\n확인 = 표시 지우기\n취소 = 그대로')) delete rec.att[k];
-    else return;
-  } else {
-    if(confirm(name + '\n\n이 일정 하셨나요?\n\n확인 = 함\n취소 = 안 함')) rec.att[k] = 'done';
-    else rec.att[k] = 'no';
-  }
-  recSave(); drawMeets();
-});
 
 drawTodo(); drawMeets();
 
@@ -1050,9 +1058,13 @@ async function recLoad(){
   if(!rec.days) rec.days = {};
   if(!rec.done) rec.done = {};
   if(!rec.att) rec.att = {};
+  if(!rec.myMeets) rec.myMeets = [];
+  if(!rec.myRoster) rec.myRoster = {};
+  if(!rec.myTodo) rec.myTodo = [];
+  if(!rec.delMeet) rec.delMeet = {};
+  if(!rec.delTodo) rec.delTodo = {};
+  applyUser();
   recRender();
-  drawTodo();
-  drawMeets();
 }
 async function recSave(){
   try{ await STORE.set('plan90', JSON.stringify(rec)); return true; }
@@ -1289,6 +1301,107 @@ document.getElementById('csvOut').addEventListener('click', function(){
   box.select();
   try{ document.execCommand('copy'); }catch(e){}
   document.getElementById('status').textContent = '표를 복사했습니다. 엑셀이나 메모장에 붙여넣으세요.';
+});
+
+function applyUser(){
+  // 사용자가 넣은 일정 합치기
+  MEETS = BASE_MEETS.concat(rec.myMeets || []);
+  MEETS = MEETS.filter(function(e){ return !(rec.delMeet && rec.delMeet[e[0]+'|'+e[2]]); });
+  // 사용자가 지정한 근무 덮어쓰기
+  for(var k in (rec.myRoster||{})) ROSTER[k] = rec.myRoster[k];
+  // 할 일 합치기
+  TODO = BASE_TODO.map(function(g){
+    return [g[0], g[1].filter(function(x){ return !(rec.delTodo && rec.delTodo[x]); })];
+  });
+  if(rec.myTodo && rec.myTodo.length){
+    TODO = TODO.concat([['내가 넣은 것',
+      rec.myTodo.filter(function(x){ return !(rec.delTodo && rec.delTodo[x]); })]]);
+  }
+  rebuild();
+}
+
+function rebuild(){
+  var nn = new Date();
+  var tt0 = new Date(nn.getFullYear(), nn.getMonth(), nn.getDate());
+  mt = MEETS.map(function(e){
+    var pt = e[0].split('-');
+    var dt = new Date(+pt[0], +pt[1]-1, +pt[2]);
+    return {d:dt, t:e[1], x:e[2], drink:!!e[4],
+            k2:e[0]+'|'+e[2], go:e[5] !== false,
+            n:Math.round((dt - tt0)/86400000)};
+  }).filter(function(u){ return u.n >= -14; }).sort(function(a,b){
+    return a.d - b.d || (a.t < b.t ? -1 : 1);
+  });
+  try{ drawMeets(); }catch(e){}
+  try{ drawTodo(); }catch(e){}
+  try{ drawWeek(); }catch(e){}
+  try{ redrawDay(); }catch(e){}
+}
+
+function msg(t){
+  var m = document.getElementById('inMsg');
+  m.textContent = t;
+  setTimeout(function(){ m.textContent = ''; }, 2500);
+}
+
+document.getElementById('inAdd').addEventListener('click', function(){
+  var d = document.getElementById('inDate').value;
+  var t = document.getElementById('inTime').value;
+  var x = document.getElementById('inText').value.trim();
+  if(!d || !x){ msg('날짜와 내용을 넣어주세요.'); return; }
+  if(!rec.myMeets) rec.myMeets = [];
+  rec.myMeets.push([d, t || '', x, 'etc', false]);
+  document.getElementById('inText').value = '';
+  recSave(); applyUser(); msg('넣었습니다: ' + x);
+});
+
+Array.prototype.forEach.call(document.querySelectorAll('.inSm'), function(b){
+  b.addEventListener('click', function(){
+    var d = document.getElementById('wkDate').value;
+    if(!d){ msg('날짜를 먼저 고르세요.'); return; }
+    if(!rec.myRoster) rec.myRoster = {};
+    rec.myRoster[d] = b.dataset.w;
+    recSave(); applyUser();
+    msg(d + ' → ' + b.textContent);
+  });
+});
+
+document.getElementById('tdAdd').addEventListener('click', function(){
+  var x = document.getElementById('tdText').value.trim();
+  if(!x){ msg('할 일을 적어주세요.'); return; }
+  if(!rec.myTodo) rec.myTodo = [];
+  rec.myTodo.push(x);
+  document.getElementById('tdText').value = '';
+  recSave(); applyUser(); msg('넣었습니다: ' + x);
+});
+
+document.getElementById('delMeet').addEventListener('click', function(){
+  var list = mt.map(function(u,i){
+    return (i+1) + '. ' + (u.d.getMonth()+1)+'/'+u.d.getDate()+' ' + u.x;
+  }).join('\n');
+  var v = prompt('지울 일정 번호를 넣으세요\n\n' + list, '');
+  if(!v) return;
+  var i = parseInt(v,10) - 1;
+  if(isNaN(i) || !mt[i]){ msg('번호가 맞지 않습니다.'); return; }
+  var u = mt[i];
+  if(!rec.delMeet) rec.delMeet = {};
+  rec.delMeet[u.k2] = 1;
+  rec.myMeets = (rec.myMeets||[]).filter(function(e){ return e[0]+'|'+e[2] !== u.k2; });
+  recSave(); applyUser(); msg('지웠습니다: ' + u.x);
+});
+
+document.getElementById('delTodo').addEventListener('click', function(){
+  var flat = [];
+  TODO.forEach(function(g){ g[1].forEach(function(x){ flat.push(x); }); });
+  var list = flat.map(function(x,i){ return (i+1)+'. '+x; }).join('\n');
+  var v = prompt('지울 할 일 번호를 넣으세요\n\n' + list, '');
+  if(!v) return;
+  var i = parseInt(v,10) - 1;
+  if(isNaN(i) || !flat[i]){ msg('번호가 맞지 않습니다.'); return; }
+  if(!rec.delTodo) rec.delTodo = {};
+  rec.delTodo[flat[i]] = 1;
+  rec.myTodo = (rec.myTodo||[]).filter(function(x){ return x !== flat[i]; });
+  recSave(); applyUser(); msg('지웠습니다: ' + flat[i]);
 });
 
 recLoad();
