@@ -971,6 +971,13 @@ mt = MEETS.map(function(e){
 });
 function meetHTML(u){
   var past = u.n < 0;
+  if(!past && u.n === 0 && u.t){
+    var pp = u.t.split(':');
+    if(pp.length === 2){
+      var nw2 = new Date();
+      if((+pp[0]*60 + +pp[1]) < (nw2.getHours()*60 + nw2.getMinutes())) past = true;
+    }
+  }
   return '<div class="mt'+(past?' past':'')+'">'
     + '<span class="mtDate">'+(u.d.getMonth()+1)+'/'+u.d.getDate()+'('+DOW[u.d.getDay()]+')</span>'
     + '<span class="mtT">'+(u.t||'')+'</span>'
@@ -978,8 +985,19 @@ function meetHTML(u){
     + '<span class="mtWhen">'+(past?'지남':(u.n===0?'오늘':(u.n===1?'내일':u.n+'일')))+'</span></div>';
 }
 drawMeets = function(){
-  var open3 = mt.filter(function(u){ return u.n >= 0; });
-  var closed3 = mt.filter(function(u){ return u.n < 0; }).reverse();
+  function isPast(u){
+    if(u.n < 0) return true;
+    if(u.n === 0 && u.t){
+      var pp = u.t.split(':');
+      if(pp.length === 2){
+        var nw2 = new Date();
+        return (+pp[0]*60 + +pp[1]) < (nw2.getHours()*60 + nw2.getMinutes());
+      }
+    }
+    return false;
+  }
+  var open3 = mt.filter(function(u){ return !isPast(u); });
+  var closed3 = mt.filter(isPast).reverse();
   var sorted = open3.concat(closed3);
   document.getElementById('meets').innerHTML = sorted.length
     ? sorted.slice(0,5).map(meetHTML).join('')
