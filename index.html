@@ -42,8 +42,13 @@
     </div>
     <div class="pgDryBox">
       <span class="pgDryN" id="pgDry">0</span>
-      <span class="pgDryL">일 <b>술 안 마심</b></span>
-      <span class="pgWkS" id="pgWk"></span>
+      <span class="pgDryL">일 <b>연속 술 안 마심</b></span>
+      <span class="pgWkS"><span id="pgBest"></span> · <span id="pgWk"></span></span>
+    </div>
+    <div class="pgDryBox gym">
+      <span class="pgDryN" id="pgGym">0</span>
+      <span class="pgDryL">일 <b>연속 운동</b></span>
+      <span class="pgWkS"><span id="pgGymBest"></span></span>
     </div>
   </details>
 
@@ -245,8 +250,9 @@
   .pgBar{flex:1; height:7px; background:var(--line); border-radius:6px;
     overflow:hidden}
   .pgFill{height:100%; background:var(--jade); border-radius:6px; width:0%}
-  .pgDryBox{display:flex; align-items:baseline; gap:6px; margin-top:12px;
+  .pgDryBox{display:flex; align-items:baseline; gap:6px; margin-top:9px;
     padding:11px 13px; background:var(--jade); border-radius:12px; color:#fff}
+  .pgDryBox.gym{background:#4A6FA5}
   .pgDryN{font-size:32px; font-weight:800; line-height:1}
   .pgDryL{font-size:14px; opacity:.92}
   .pgDryL b{font-weight:800; opacity:1}
@@ -1099,7 +1105,7 @@ document.getElementById('prevW').addEventListener('click', function(){ wkOff--; 
 document.getElementById('nextW').addEventListener('click', function(){ wkOff++; drawWeek(); if(!document.getElementById('monthWrap').hidden) drawMonth(); });
 
 // ───── 기록 기능 (plan90 공용 저장소) ─────
-var CHECKS = ['세 끼','국물 남김','물 2L','걷기','헬스장','영어','책','잠'];
+var CHECKS = ['세 끼','국물 남김','물 2L','운동','영어','책','잠'];
 var rec = {start:null, days:{}, done:{}, att:{}};
 
 async function recLoad(){
@@ -1216,7 +1222,7 @@ function drawStats(){
     if(r.drink === 0) weeks[wi].dry++;
     else if(r.drink > 0) weeks[wi].drank++;
     if(r.w) weeks[wi].ws.push(r.w);
-    if(r.checks && r.checks.indexOf(4) > -1) weeks[wi].gym++;
+    if(r.checks && r.checks.indexOf(3) > -1) weeks[wi].gym++;
   });
 
   var allW = [], dryTotal = 0, gymTotal = 0, logged = 0;
@@ -1225,13 +1231,13 @@ function drawStats(){
     if(r.w) allW.push(r.w);
     if(r.drink === 0) dryTotal++;
     if(r.drink !== null && r.drink !== undefined) logged++;
-    if(r.checks && r.checks.indexOf(4) > -1) gymTotal++;
+    if(r.checks && r.checks.indexOf(3) > -1) gymTotal++;
   });
   var lost = allW.length > 1 ? Math.round(allW[0] - allW[allW.length-1]) : 0;
   document.getElementById('statSum').innerHTML =
     '<span><b>'+logged+'</b>일 기록</span>'
     + '<span>술 안 마심 <b>'+dryTotal+'</b>일</span>'
-    + '<span>헬스 <b>'+gymTotal+'</b>회</span>'
+    + '<span>운동 <b>'+gymTotal+'</b>일</span>'
     + '<span>감량 <b>'+lost+'</b>kg</span>';
 
   var mx = Math.max.apply(null, allW.concat([1]));
@@ -1249,7 +1255,7 @@ function drawStats(){
       ? (w.ws.length > 1 ? w.ws[0]+'→'+w.ws[w.ws.length-1] : ''+w.ws[0])
       : '-';
     rows += '<tr><td>'+(+wi+1)+'주</td><td>'+w.days+'일</td><td>'+w.dry+'일</td>'
-      + '<td>'+wtxt+'</td><td>'+w.gym+'회</td></tr>';
+      + '<td>'+wtxt+'</td><td>'+w.gym+'일</td></tr>';
   });
   document.getElementById('statTbl').innerHTML = rows;
 }
@@ -1269,9 +1275,68 @@ function recSummary(){
   var sd = new Date(+rec.start.split('-')[0], +rec.start.split('-')[1]-1, +rec.start.split('-')[2]);
   var wk = Math.max(1, Math.floor((new Date(today) - sd)/86400000/7) + 1);
   document.getElementById('pgWk').textContent = wk + '주차';
-  var from = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() + (wk-1)*7), dry = 0;
-  for(var i=0;i<7;i++) if(rec.days[dstr(from,i)] && rec.days[dstr(from,i)].drink === 0) dry++;
-  document.getElementById('pgDry').textContent = dry;
+  // 연속 금주일 (오늘 또는 어제부터 거슬러 올라가며)
+  var streak = 0, cur3 = new Date(today);
+  var tday = rec.days[today];
+  if(!tday || tday.drink === null || tday.drink === undefined){
+    cur3 = new Date(cur3.getFullYear(), cur3.getMonth(), cur3.getDate() - 1);
+  }
+  for(var g=0; g<400; g++){
+    var kk = ymd(cur3);
+    var r3 = rec.days[kk];
+    if(r3 && r3.drink === 0){ streak++; }
+    else break;
+    cur3 = new Date(cur3.getFullYear(), cur3.getMonth(), cur3.getDate() - 1);
+  }
+  // 최고 기록
+  var best = 0, run = 0, allk = Object.keys(rec.days).sort();
+  var prevD = null;
+  allk.forEach(function(k3){
+    var r4 = rec.days[k3];
+    var dd3 = new Date(k3);
+    if(r4 && r4.drink === 0){
+      if(prevD && Math.round((dd3 - prevD)/86400000) === 1) run++; else run = 1;
+      if(run > best) best = run;
+      prevD = dd3;
+    } else { run = 0; prevD = null; }
+  });
+  if(streak > best) best = streak;
+  rec.best = best;
+  // 연속 운동일
+  function streakOf(idx){
+    var n2 = 0, c4 = new Date(today);
+    var td2 = rec.days[today];
+    var has = td2 && td2.checks && td2.checks.indexOf(idx) > -1;
+    if(!has) c4 = new Date(c4.getFullYear(), c4.getMonth(), c4.getDate() - 1);
+    for(var q=0;q<400;q++){
+      var k5 = ymd(c4), r5 = rec.days[k5];
+      if(r5 && r5.checks && r5.checks.indexOf(idx) > -1) n2++;
+      else break;
+      c4 = new Date(c4.getFullYear(), c4.getMonth(), c4.getDate() - 1);
+    }
+    return n2;
+  }
+  function bestOf(idx){
+    var b2 = 0, r6 = 0, pv = null;
+    Object.keys(rec.days).sort().forEach(function(k6){
+      var d6 = rec.days[k6], dt6 = new Date(k6);
+      if(d6 && d6.checks && d6.checks.indexOf(idx) > -1){
+        if(pv && Math.round((dt6 - pv)/86400000) === 1) r6++; else r6 = 1;
+        if(r6 > b2) b2 = r6;
+        pv = dt6;
+      } else { r6 = 0; pv = null; }
+    });
+    return b2;
+  }
+  var gs = streakOf(3), gb = Math.max(bestOf(3), gs);
+  var ge = document.getElementById('pgGym');
+  if(ge) ge.textContent = gs;
+  var gbe = document.getElementById('pgGymBest');
+  if(gbe) gbe.textContent = gb > 0 ? ('최고 ' + gb + '일') : '';
+
+  document.getElementById('pgDry').textContent = streak;
+  var lbl = document.getElementById('pgBest');
+  if(lbl) lbl.textContent = best > 0 ? ('최고 ' + best + '일') : '';
 }
 
 function stepW(delta){
