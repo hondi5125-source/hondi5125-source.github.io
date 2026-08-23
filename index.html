@@ -26,6 +26,7 @@
 
   <div class="bar">
     <span class="barNow" id="nowMain">—</span>
+    <button class="barLoc" id="shareBtn" type="button">링크 복사</button>
     <a class="barLoc" href="https://www.google.com/maps" target="_blank" rel="noopener">지도</a>
   </div>
 
@@ -230,6 +231,7 @@
     border-radius:11px; padding:10px 12px; margin-bottom:10px}
   .barNow{font-size:14px; font-weight:700; flex:1; min-width:0;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  button.barLoc{border:none; font-family:inherit; cursor:pointer}
   .barLoc{font-size:12px; font-weight:700; color:#fff; text-decoration:none;
     background:rgba(255,255,255,.22); padding:6px 10px; border-radius:16px;
     white-space:nowrap}
@@ -433,6 +435,8 @@
   .tdg{font-size:11.5px; font-weight:800; color:var(--jade); letter-spacing:.06em;
     margin:11px 0 4px}
   .tdg:first-child{margin-top:0}
+  .tdg.dn{color:#9AA39D; margin-top:16px;
+    border-top:1px solid var(--line); padding-top:12px}
   .td{display:flex; align-items:flex-start; gap:7px; padding:5px 0; font-size:14px}
   .tbox{width:19px; height:19px; border-radius:6px; border:1.5px solid var(--line);
     flex:none; display:grid; place-items:center; font-size:12px; color:#fff;
@@ -854,18 +858,27 @@ drawTodo = function(){
     return '<div class="td'+(on?' done':'')+'" data-k="'+x.replace(/"/g,'')+'">'
       + '<span class="tbox">'+(on?'✓':'')+'</span><span class="tdx">'+x+'</span></div>';
   }
-  var undone = flat.filter(function(f){ return !(rec.done && rec.done[f[1]]); });
-  var done2  = flat.filter(function(f){ return rec.done && rec.done[f[1]]; });
-  var top = undone.slice(0,5).concat(done2.slice(0,2));
+  var isDone = function(x){ return !!(rec.done && rec.done[x]); };
+  var undone = flat.filter(function(f){ return !isDone(f[1]); });
+  var done2  = flat.filter(function(f){ return isDone(f[1]); });
+
   document.getElementById('todoTop').innerHTML =
-    top.map(function(f){ return row(f[1]); }).join('')
+    undone.slice(0,5).map(function(f){ return row(f[1]); }).join('')
     || '<div class="td"><span class="tdx">다 하셨습니다</span></div>';
-  document.getElementById('todoSum').textContent = '전체 ' + flat.length + '개 보기';
-  document.getElementById('todo').innerHTML = TODO.map(function(g){
-    var un = g[1].filter(function(x){ return !(rec.done && rec.done[x]); });
-    var dn = g[1].filter(function(x){ return rec.done && rec.done[x]; });
-    return '<div class="tdg">'+g[0]+'</div>' + un.concat(dn).map(row).join('');
+
+  document.getElementById('todoSum').textContent =
+    '남은 일 ' + undone.length + '개' + (done2.length ? ' · 끝낸 일 ' + done2.length + '개' : '') + ' 보기';
+
+  var html = TODO.map(function(g){
+    var un = g[1].filter(function(x){ return !isDone(x); });
+    if(!un.length) return '';
+    return '<div class="tdg">'+g[0]+'</div>' + un.map(row).join('');
   }).join('');
+  if(done2.length){
+    html += '<div class="tdg dn">끝낸 일</div>'
+      + done2.map(function(f){ return row(f[1]); }).join('');
+  }
+  document.getElementById('todo').innerHTML = html;
 };
 document.addEventListener('click', function(e){
   var t = e.target.closest('.td[data-k]');
@@ -1530,6 +1543,24 @@ document.getElementById('delTodo').addEventListener('click', function(){
   rec.delTodo[flat[i]] = 1;
   rec.myTodo = (rec.myTodo||[]).filter(function(x){ return x !== flat[i]; });
   recSave(); applyUser(); msg('지웠습니다: ' + flat[i]);
+});
+
+document.getElementById('shareBtn').addEventListener('click', function(){
+  var b = this, url = location.origin + location.pathname;
+  function ok(){
+    var old = b.textContent;
+    b.textContent = '복사됨';
+    setTimeout(function(){ b.textContent = old; }, 1800);
+  }
+  if(navigator.share){
+    navigator.share({title:'우리집 일정', url:url}).then(ok).catch(function(){});
+    return;
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(ok).catch(function(){ prompt('아래 주소를 복사하세요', url); });
+  } else {
+    prompt('아래 주소를 복사하세요', url);
+  }
 });
 
 recLoad();
