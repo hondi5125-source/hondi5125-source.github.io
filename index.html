@@ -74,9 +74,10 @@
     <div id="monthWrap" hidden>
       <div class="mgrid" id="month"></div>
       <div class="mlgd">
-        <span><i class="ms d"></i>정상</span>
-        <span><i class="ms w"></i>새벽</span>
-        <span><i class="ms p"></i>오후</span>
+        <span><i class="ms w"></i>A507</span>
+        <span><i class="ms d"></i>AA02</span>
+        <span><i class="ms m"></i>AB04</span>
+        <span><i class="ms p"></i>PC05</span>
         <span><i class="ms o"></i>휴무</span>
         <span class="mnote">아래 보라 글씨는 엄마</span>
       </div>
@@ -135,9 +136,10 @@
       <input type="date" id="wkDate">
     </div>
     <div class="wkBtns">
-      <button class="inSm" data-w="day" type="button">정상</button>
-      <button class="inSm" data-w="dawn" type="button">새벽</button>
-      <button class="inSm" data-w="pm" type="button">오후</button>
+      <button class="inSm" data-w="dawn" type="button">A507</button>
+      <button class="inSm" data-w="day" type="button">AA02</button>
+      <button class="inSm" data-w="mid" type="button">AB04</button>
+      <button class="inSm" data-w="pm" type="button">PC05</button>
       <button class="inSm" data-w="off" type="button">휴무</button>
     </div>
 
@@ -383,13 +385,13 @@
   .mcm{font-size:9px; color:#6B4E7A; font-weight:700; line-height:1}
   .mcE{font-size:7px; color:var(--jade); line-height:1}
   .p-day{color:#1F6F5C} .p-dawn{color:#2E5C8A}
-  .p-pm{color:#B8791F} .p-off{color:#B0B6B1}
+  .p-pm{color:#B8791F} .p-off{color:#B0B6B1} .p-mid{color:#7A5AA8}
   .mlgd{display:flex; flex-wrap:wrap; gap:8px; margin-top:9px; font-size:10.5px;
     color:var(--ink2); align-items:center}
   .mlgd span{display:flex; align-items:center; gap:3px}
   .ms{width:8px; height:8px; border-radius:2px; display:inline-block}
   .ms.d{background:#1F6F5C} .ms.w{background:#2E5C8A}
-  .ms.p{background:#B8791F} .ms.o{background:#B0B6B1}
+  .ms.p{background:#B8791F} .ms.o{background:#B0B6B1} .ms.m{background:#7A5AA8}
   .mnote{color:#6B4E7A}
   .wkHead{display:flex; align-items:center; gap:8px; margin-bottom:10px}
   .wkHead h2{flex:1; text-align:center; margin:0}
@@ -482,8 +484,8 @@
 (function(){
 // ─────────────────────────────────────────────
 // 여기만 고치면 됩니다
-// 근무: 'day' 정상 08:30~18:00 · 'dawn' 새벽 05:30~15:00
-//       'pm' 오후 12:30~21:30 · 'off' 쉬는 날
+// 근무: 'dawn' A507 05:40~14:40 · 'day' AA02 10:00~19:00
+//       'mid' AB04 11:00~20:00 · 'pm' PC05 12:30~21:30 · 'off' 쉬는 날
 // ─────────────────────────────────────────────
 var NAME = '아빠';
 var ROSTER = {
@@ -689,13 +691,18 @@ var MOM_ROSTER = {
 };
 function momShift(k){ return MOM_ROSTER[k] || ''; }
 var SH = {
-  day:{tag:'정상', time:'08:30-18', rows:[
-    ['06:45','일어남'],['07:10','아침'],['08:30','근무 시작'],
-    ['12:30','점심'],['18:00','퇴근 · 헬스장'],['19:30','저녁'],['23:00','잠']]},
-  dawn:{tag:'새벽', time:'05:30-15', rows:[
-    ['04:00','일어남'],['04:20','아침'],['05:30','근무 시작'],
-    ['09:00','휴게'],['15:00','퇴근 · 헬스장'],['18:00','저녁'],['21:30','잠']]},
-  pm:{tag:'오후', time:'12:30-21:30', rows:[
+  dawn:{tag:'A507 새벽', time:'05:40-14:40', rows:[
+    ['04:10','일어남'],['04:30','아침'],['05:40','근무 시작'],
+    ['09:00','휴게'],['14:40','퇴근 · 헬스장'],['18:00','저녁'],['21:30','잠']]},
+  day:{tag:'AA02 낮', time:'10:00-19:00', rows:[
+    ['07:30','일어남'],['08:00','아침'],['08:40','헬스장'],
+    ['10:00','근무 시작'],['13:00','점심 도시락'],['19:00','퇴근'],
+    ['20:00','저녁'],['23:00','잠']]},
+  mid:{tag:'AB04 늦낮', time:'11:00-20:00', rows:[
+    ['07:30','일어남'],['08:00','아침'],['09:00','헬스장'],
+    ['11:00','근무 시작'],['14:00','점심 도시락'],['20:00','퇴근'],
+    ['20:50','저녁'],['23:30','잠']]},
+  pm:{tag:'PC05 오후', time:'12:30-21:30', rows:[
     ['07:30','일어남'],['08:00','아침'],['09:30','헬스장'],
     ['12:30','근무 시작'],['15:00','도시락'],['18:30','저녁 도시락'],
     ['21:30','퇴근'],['22:15','집 도착'],['23:30','잠']]},
@@ -1090,8 +1097,8 @@ function drawWeek(){
   document.getElementById('week').innerHTML = w;
 }
 function drawMonth(){
-  var SHORT = {day:['정상','p-day'], dawn:['새벽','p-dawn'],
-               pm:['오후','p-pm'], off:['휴무','p-off']};
+  var SHORT = {day:['AA','p-day'], dawn:['A5','p-dawn'], mid:['AB','p-mid'],
+               pm:['PC','p-pm'], off:['휴','p-off']};
   var MS = {'주간':'주','야간':'야','심야':'심','비번':'비','휴무':'휴'};
   var base = addD(now, wkOff*7);
   var Y = base.getFullYear(), MO = base.getMonth();
